@@ -1,0 +1,57 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@using WebApplication1.Areas.Identity.Data
+@model IEnumerable<WebApplication1.Models.Peliculas>
+
+@{
+    ViewData["Title"] = "Gráfico de Barras";
+}
+
+<div>
+    <div>
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+
+@section scripts {
+    
+  <script>
+        function grafica() {
+            fetch("Peliculas/Graficas")
+                .then((response) => {
+                    return response.ok ? response.json() : Promise.reject(response)
+                })
+                .then((dataJson) => {
+                    console.log(dataJson)
+                    const ctx = document.getElementById('myChart');
+
+                    const labels = dataJson.map((item) => { return item.Titulo });
+                    const values = dataJson.map((item) => { return item.stars });
+                    alert(labels)
+                    alert(values)
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'comparacion de calificaciones',
+                                data: values,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                })
+        }
+
+        $(document).ready(() => {
+            grafica()
+        })
+    </script>
+} 
+}

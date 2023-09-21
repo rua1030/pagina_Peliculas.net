@@ -1,0 +1,182 @@
+﻿
+@model IEnumerable<WebApplication1.Models.Peliculas>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .cont {
+            display: inline-block;
+            margin: 10px;
+            position: relative;
+        }
+
+            .cont img {
+                border-radius: 8px;
+                width: 300px;
+                height: auto;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            }
+
+        .info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cont:hover .info {
+            opacity: 1;
+        }
+
+        .info h3 {
+            margin: 0;
+        }
+
+        .info h4, .info p {
+            margin: 5px 0;
+        }
+
+        .stars {
+            display: flex;
+            align-items: center;
+        }
+
+        .star {
+            cursor: pointer;
+            font-size: 24px;
+            margin-right: 5px;
+        }
+
+            .star.selected {
+                color: gold;
+            }
+
+        .rating-input {
+            display: none; /* Oculta el campo de entrada de calificación */
+        }
+
+        .star {
+            font-size: 30px;
+            margin-right: 10px;
+        }
+
+            .star.selected {
+                color: gold;
+            }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+<body>
+    <div class="text-center">
+        <h1 class="display-4" style="color:white">Welcome</h1>
+          @foreach(var item in Model){
+        
+          
+            <div class="cont">
+                <img src="@item.imagen" />
+                <div class="info">
+                    <h3>@item.Titulo</h3>
+                        <h4>@item.director</h4>
+                        <p>@item.duracion</p>
+                        <p>@item.categoria</p>
+
+                    <div class="stars">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <span class="star @(i <= item.stars ? "selected" : "")">&#9733;</span>
+                        }
+                    </div>
+                    
+
+
+                    <table class="btn-group">
+                        <td>
+                            <a asp-controller="peliculas" asp-action="edit" asp-route-id="@item.Id" class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10%" height="10%" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                                </svg>
+                            </a>
+                            <a asp-controller="peliculas" asp-action="eliminar" asp-route-id="@item.Id" class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10%" height="10%" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z" />
+                                </svg>
+                            </a>
+                        </td>
+                    </table>
+
+
+                    
+
+                </div>
+            </div>
+        
+       
+        }
+        
+    </div>
+    <div class="cont">
+        <canvas id="miGrafico" width="400" height="200"></canvas>
+    </div>
+
+    
+    <script>
+        // Obtener las calificaciones de películas utilizando AJAX
+        $.ajax({
+            url: '@Url.Action("ObtenerCalificaciones", "Peliculas")',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var ctx = document.getElementById("miGrafico").getContext("2d");
+                var datos = {
+                    labels: [], // Aquí irán los títulos de las películas
+                    datasets: [
+                        {
+                            label: "Calificaciones de Películas",
+                            backgroundColor: "rgba(75, 192, 192, 0.2)",
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            borderWidth: 1,
+                            data: data, // Los datos de calificaciones obtenidos
+                        },
+                    ],
+                };
+
+                var opciones = {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
+                    },
+                };
+
+                var miGrafico = new Chart(ctx, {
+                    type: "bar",
+                    data: datos,
+                    options: opciones,
+                });
+            },
+            error: function (error) {
+                console.error(error);
+            }
+        });
+    </script>
+
+    
+</body>
+</html>

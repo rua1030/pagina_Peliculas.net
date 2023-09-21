@@ -1,0 +1,149 @@
+﻿@model IEnumerable<WebApplication1.Models.Peliculas>
+@using Microsoft.AspNetCore.Identity
+@using WebApplication1.Areas.Identity.Data
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .cont {
+            display: inline-block;
+            margin: 10px;
+            position: relative;
+        }
+
+            .cont img {
+                border-radius: 8px;
+                width: 300px;
+                height: auto;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            }
+
+        .info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cont:hover .info {
+            opacity: 1;
+        }
+
+        .info h3 {
+            margin: 0;
+        }
+
+        .info h4, .info p {
+            margin: 5px 0;
+        }
+
+        .stars {
+            display: flex;
+            align-items: center;
+        }
+
+        .star {
+            cursor: pointer;
+            font-size: 24px;
+            margin-right: 5px;
+        }
+
+            .star.selected {
+                color: gold;
+            }
+
+        .rating-input {
+            display: none; /* Oculta el campo de entrada de calificación */
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js" integrity="sha512-6HrPqAvK+lZElIZ4mZ64fyxIBTsaX5zAFZg2V/2WT+iKPrFzTzvx6QAsLW2OaLwobhMYBog/+bvmIEEGXi0p1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div class="text-center">
+        <h1 class="display-4" style="color:white">Welcome @UserManager.GetUserName(User)!</h1>
+
+        <div class="">
+            @foreach (var item in Model)
+            {
+
+                <div class="cont">
+                    <img src="@item.imagen" />
+                    <div class="info">
+                        <h3>@item.Titulo</h3>
+                        <h4>@item.director</h4>
+                        <p>@item.duracion</p>
+                        <p>@item.categoria</p>
+
+                        <div class="stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span class="star @(i <= item.stars ? "selected" : "")">&#9733;</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            <div>
+                <canvas id="myChart"></canvas>
+            </div>
+            @section scripts {
+
+                <script>
+                    function grafica() {
+                        fetch("Peliculas/Graficas")
+                            .then((response) => {
+                                return response.ok ? response.json() : Promise.reject(response)
+                            })
+                            .then((dataJson) => {
+                                console.log(dataJson)
+                                const ctx = document.getElementById('myChart');
+
+                                const labels = dataJson.map((item) => { return item.Titulo });
+                                const values = dataJson.map((item) => { return item.stars });
+
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: '# of Votes',
+                                            data: values,
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
+                                        }
+                                    }
+                                });
+                            })
+                    }
+
+                    $(document).ready(() => {
+                        grafica()
+                    })
+                </script>
+            }
+        </div>
+    </div>
+
+</body>
+</html>
